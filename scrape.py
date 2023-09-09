@@ -11,7 +11,7 @@ api_key = 'AIzaSyBmkwEfKuManuqeVKCQNRkNZPOsekO8kyU'
 cse_id = '071af49c376f14afd'
 
 # Query for laptops on Amazon
-query = 'hp laptops'
+query = 'asus rogue laptops -cover -charger -accessory'
 
 image_dir = 'images'
 os.makedirs(image_dir, exist_ok=True)
@@ -43,26 +43,33 @@ if response.status_code == 200:
                     
                     # Download the image and save it locally
                     if laptop_image_url:
-                        image_filename = os.path.join(image_dir, f'{laptop_name}.jpg')
+                        # Clean the laptop name to remove invalid characters for file names
+                        cleaned_laptop_name = ''.join(c for c in laptop_name if c.isalnum() or c.isspace())
+                        image_filename = os.path.join(image_dir, f'{cleaned_laptop_name}.jpg')
+
+                        # Use forward slashes in the path (for compatibility)
+                        image_filename = image_filename.replace('\\', '/')
+
                         try:
                             response_image = requests.get(laptop_image_url)
                             with open(image_filename, 'wb') as img_file:
                                 img_file.write(response_image.content)
-                            
+
                             # Open the downloaded image using Pillow (PIL)
                             image = Image.open(image_filename)
-                            
+
                             # Convert the image to RGB mode if it's not already in RGB mode
                             if image.mode != 'RGB':
                                 image = image.convert('RGB')
-                            
+
                             # Specify the image format (e.g., JPEG) when saving
                             image.save(image_filename, format='JPEG')
-                            
+
                         except UnidentifiedImageError:
                             # Handle the UnidentifiedImageError and skip this image
                             print(f"Skipping image: {laptop_name} (UnidentifiedImageError)")
                             continue
+
                     
                     # Add a blank line for separation in CSV
                     csv_writer.writerow({'Laptop Name': '', 'Link': '', 'Image': ''})
